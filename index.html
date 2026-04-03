@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tic Tac Toe Pro</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial;
+      background: #111;
+      color: white;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      gap: 10px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .cell {
+      width: 100px;
+      height: 100px;
+      background: #222;
+      font-size: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .cell:hover {
+      background: #333;
+    }
+
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #menu {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Tic Tac Toe Pro 🔥</h1>
+
+<div id="menu">
+  <h2>Select Mode</h2>
+  <button onclick="chooseMode('friend')">👥 Friend</button>
+  <button onclick="chooseMode('bot')">🤖 Computer</button>
+</div>
+
+<h2 id="status">Select Mode First</h2>
+
+<div class="board" id="board"></div>
+
+<button onclick="resetGame()">Reset</button>
+
+<script>
+let board = ["", "", "", "", "", "", "", "", ""];
+let currentPlayer = "X";
+let gameActive = false;
+let vsComputer = false;
+
+const winPatterns = [
+  [0,1,2], [3,4,5], [6,7,8],
+  [0,3,6], [1,4,7], [2,5,8],
+  [0,4,8], [2,4,6]
+];
+
+const boardDiv = document.getElementById("board");
+const statusText = document.getElementById("status");
+
+// Create cells
+board.forEach((_, index) => {
+  const cell = document.createElement("div");
+  cell.classList.add("cell");
+  cell.addEventListener("click", () => handleClick(index));
+  boardDiv.appendChild(cell);
+});
+
+// Mode selection
+function chooseMode(mode) {
+  vsComputer = (mode === "bot");
+  gameActive = true;
+  document.getElementById("menu").style.display = "none";
+  statusText.innerText = "Player X Turn";
+}
+
+function handleClick(index) {
+  if (board[index] !== "" || !gameActive) return;
+
+  board[index] = currentPlayer;
+  updateBoard();
+
+  if (checkWin()) {
+    statusText.innerText = `Player ${currentPlayer} Wins! 🎉`;
+    gameActive = false;
+    return;
+  }
+
+  if (!board.includes("")) {
+    statusText.innerText = "Draw!";
+    gameActive = false;
+    return;
+  }
+
+  currentPlayer = currentPlayer === "X" ? "O" : "X";
+  statusText.innerText = `Player ${currentPlayer} Turn`;
+
+  if (vsComputer && currentPlayer === "O") {
+    setTimeout(computerMove, 500);
+  }
+}
+
+function computerMove() {
+  let emptyCells = board
+    .map((val, i) => val === "" ? i : null)
+    .filter(v => v !== null);
+
+  let randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+  handleClick(randomIndex);
+}
+
+function updateBoard() {
+  const cells = document.querySelectorAll(".cell");
+  cells.forEach((cell, i) => {
+    cell.innerText = board[i];
+  });
+}
+
+function checkWin() {
+  return winPatterns.some(pattern => {
+    const [a,b,c] = pattern;
+    return board[a] && board[a] === board[b] && board[a] === board[c];
+  });
+}
+
+function resetGame() {
+  board = ["", "", "", "", "", "", "", "", ""];
+  currentPlayer = "X";
+  gameActive = true;
+  statusText.innerText = "Player X Turn";
+  updateBoard();
+}
+</script>
+
+</body>
+</html>
