@@ -6,123 +6,129 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-  .cell {
-  transition: 0.3s;
-}
-
-.cell:active {
-  transform: scale(0.9);
-}
-
-.win {
-  background: lime !important;
-  animation: glow 0.5s infinite alternate;
-}
-
-@keyframes glow {
-  from { box-shadow: 0 0 10px lime; }
-  to { box-shadow: 0 0 25px lime; }
-}
-
-button {
-  transition: 0.3s;
-}
-
-button:hover {
-  transform: scale(1.1);
-}
 body {
-  function enableSound() {
-  clickSound.play().catch(()=>{});
-  winSound.play().catch(()=>{});
-  }
-  margin: 0;
-  font-family: Arial;
-  background: #111;
-  color: white;
   text-align: center;
+  font-family: Arial;
+  background: #0f172a;
+  color: white;
 }
 
-/* MENU */
-#menu {
-  margin-top: 100px;
-}
-
-button {
-  padding: 12px 25px;
-  margin: 10px;
-  font-size: 18px;
-  border: none;
-  border-radius: 8px;
-  background: #00ffcc;
-  color: black;
-}
-
-/* GAME AREA */
-#game {
-  display: none;
+h1 {
+  margin-top: 20px;
 }
 
 .board {
   display: grid;
-  grid-template-columns: repeat(3, 100px);
+  grid-template-columns: repeat(3, 90px);
   gap: 10px;
   justify-content: center;
-  margin-top: 30px;
+  margin-top: 20px;
 }
 
 .cell {
-  width: 100px;
-  height: 100px;
-  background: #222;
+  width: 90px;
+  height: 90px;
+  background: #1e293b;
   font-size: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  border-radius: 12px;
+  transition: 0.3s;
+}
+
+.cell:hover {
+  background: #334155;
+  transform: scale(1.1);
 }
 
 .win {
-  background: green !important;
+  background: #22c55e !important;
+  animation: blink 0.5s infinite;
 }
 
-#status {
-  margin-top: 15px;
-  font-size: 20px;
+@keyframes blink {
+  50% { opacity: 0.5; }
 }
 
-#score {
-  margin-top: 10px;
+button {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: none;
+  background: #3b82f6;
+  color: white;
+}
+
+#menu {
+  margin-top: 30px;
+}
+
+#game {
+  display: none;
+}
+
+#celebration {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  color: yellow;
+  animation: pop 1s ease;
+}
+
+@keyframes pop {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
 }
 </style>
 </head>
 
-<body>
+<body onclick="enableSound()">
 
-<!-- MENU -->
+<h1>Tic Tac Toe Pro 🔥</h1>
+
 <div id="menu">
-  <h1>Tic Tac Toe Pro 🔥</h1>
-  <button onclick="startGame('friend')">👥 Play with Friend</button>
-  <button onclick="startGame('bot')">🤖 Play with Computer</button>
+  <h2>Select Mode</h2>
+  <button onclick="startGame('friend')">👥 Friend</button>
+  <button onclick="startGame('bot')">🤖 Computer</button>
 </div>
 
-<!-- GAME -->
 <div id="game">
   <h2 id="status"></h2>
   <div class="board" id="board"></div>
   <h3 id="score">X: 0 | O: 0</h3>
-  <button onclick="resetGame()">🔄 Reset</button>
-  <button onclick="goMenu()">⬅ Back</button>
+  <button onclick="resetGame()">Reset</button>
+  <button onclick="goMenu()">Back</button>
 </div>
 
+<div id="celebration">🎉 WINNER 🎉</div>
+
 <script>
-  // SOUND
+
+// 🔊 SOUND
 const clickSound = new Audio("https://www.soundjay.com/button/sounds/button-16.mp3");
 const winSound = new Audio("https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3");
+
+// enable mobile sound
+function enableSound(){
+  clickSound.play().catch(()=>{});
+  winSound.play().catch(()=>{});
+}
+
 let board = ["","","","","","","","",""];
 let currentPlayer = "X";
 let gameActive = true;
-let vsComputer = false;
+let vsBot = false;
+
 let scoreX = 0;
 let scoreO = 0;
 
@@ -132,98 +138,165 @@ const winPatterns = [
  [0,4,8],[2,4,6]
 ];
 
-function startGame(mode) {
-  document.getElementById("menu").style.display = "none";
-  document.getElementById("game").style.display = "block";
+// 🎮 START GAME
+function startGame(mode){
+  document.getElementById("menu").style.display="none";
+  document.getElementById("game").style.display="block";
 
-  vsComputer = (mode === "bot");
+  vsBot = (mode==="bot");
   resetGame();
 }
 
-function createBoard() {
+// 🎯 CREATE BOARD
+function createBoard(){
   const boardDiv = document.getElementById("board");
-  boardDiv.innerHTML = "";
+  boardDiv.innerHTML="";
 
-  board.forEach((cell, i) => {
+  board.forEach((cell,i)=>{
     let div = document.createElement("div");
     div.classList.add("cell");
     div.innerText = cell;
-    div.onclick = () => makeMove(i);
+
+    div.onclick = ()=>makeMove(i);
+
     boardDiv.appendChild(div);
   });
 }
 
-function makeMove(i) {
-  clickSound.currentTime = 0;
-clickSound.play().catch(()=>{});
-  if (board[i] !== "" || !gameActive) return;
+// 🧠 SMART AI (MINIMAX)
+function bestMove(){
+  let bestScore = -Infinity;
+  let move;
 
-  board[i] = currentPlayer;
-  createBoard();
-
-  if (checkWin()) {
-  winSound.currentTime = 0;
-  winSound.play().catch(()=>{});
-    document.getElementById("status").innerText = currentPlayer + " Wins 🎉";
-    updateScore();
-    gameActive = false;
-    return;
+  for(let i=0;i<9;i++){
+    if(board[i]==""){
+      board[i]="O";
+      let score = minimax(board,0,false);
+      board[i]="";
+      if(score>bestScore){
+        bestScore = score;
+        move = i;
+      }
+    }
   }
-
-  if (!board.includes("")) {
-    document.getElementById("status").innerText = "Draw 😐";
-    gameActive = false;
-    return;
-  }
-
-  currentPlayer = currentPlayer === "X" ? "O" : "X";
-  document.getElementById("status").innerText = "Turn: " + currentPlayer;
-
-  if (vsComputer && currentPlayer === "O") {
-    setTimeout(botMove, 500);
-  }
-}
-
-function botMove() {
-  let empty = board.map((v,i) => v === "" ? i : null).filter(v => v !== null);
-  let move = empty[Math.floor(Math.random() * empty.length)];
   makeMove(move);
 }
 
-function checkWin() {
-  return winPatterns.some(pattern => {
-    let [a,b,c] = pattern;
-    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-      highlightWin(pattern);
+function minimax(board,depth,isMax){
+  let result = checkWinner();
+  if(result!==null){
+    return result==="O"?1:result==="X"?-1:0;
+  }
+
+  if(isMax){
+    let best=-Infinity;
+    for(let i=0;i<9;i++){
+      if(board[i]==""){
+        board[i]="O";
+        best=Math.max(best,minimax(board,depth+1,false));
+        board[i]="";
+      }
+    }
+    return best;
+  } else {
+    let best=Infinity;
+    for(let i=0;i<9;i++){
+      if(board[i]==""){
+        board[i]="X";
+        best=Math.min(best,minimax(board,depth+1,true));
+        board[i]="";
+      }
+    }
+    return best;
+  }
+}
+
+// 🎯 MOVE
+function makeMove(i){
+  clickSound.currentTime=0;
+  clickSound.play().catch(()=>{});
+
+  if(board[i]!=="" || !gameActive) return;
+
+  board[i]=currentPlayer;
+  createBoard();
+
+  if(checkWin()){
+    winSound.play().catch(()=>{});
+    showWin();
+    updateScore();
+    gameActive=false;
+    return;
+  }
+
+  if(!board.includes("")){
+    document.getElementById("status").innerText="Draw 😅";
+    gameActive=false;
+    return;
+  }
+
+  currentPlayer = currentPlayer==="X"?"O":"X";
+  document.getElementById("status").innerText="Turn: "+currentPlayer;
+
+  if(vsBot && currentPlayer==="O"){
+    setTimeout(bestMove,500);
+  }
+}
+
+// 🏆 CHECK WIN
+function checkWin(){
+  return winPatterns.some(pattern=>{
+    let [a,b,c]=pattern;
+    if(board[a] && board[a]===board[b] && board[a]===board[c]){
+      highlight(pattern);
       return true;
     }
   });
 }
 
-function highlightWin(pattern) {
-  const cells = document.querySelectorAll(".cell");
-  pattern.forEach(i => cells[i].classList.add("win"));
+function highlight(pattern){
+  const cells=document.querySelectorAll(".cell");
+  pattern.forEach(i=>cells[i].classList.add("win"));
 }
 
-function updateScore() {
-  if (currentPlayer === "X") scoreX++;
+// 🎉 CELEBRATION
+function showWin(){
+  let box=document.getElementById("celebration");
+  box.innerText = currentPlayer+" Wins 🎉";
+  box.style.display="flex";
+
+  setTimeout(()=>{
+    box.style.display="none";
+  },2000);
+}
+
+// 📊 SCORE
+function updateScore(){
+  if(currentPlayer==="X") scoreX++;
   else scoreO++;
-  document.getElementById("score").innerText = `X: ${scoreX} | O: ${scoreO}`;
+
+  document.getElementById("score").innerText=
+    `X: ${scoreX} | O: ${scoreO}`;
 }
 
-function resetGame() {
-  board = ["","","","","","","","",""];
-  gameActive = true;
-  currentPlayer = "X";
-  document.getElementById("status").innerText = "Turn: X";
+// 🔁 RESET
+function resetGame(){
+  board=["","","","","","","","",""];
+  gameActive=true;
+  currentPlayer="X";
+
+  document.getElementById("status").innerText="Turn: X";
   createBoard();
 }
 
-function goMenu() {
-  document.getElementById("game").style.display = "none";
-  document.getElementById("menu").style.display = "block";
+// 🔙 MENU
+function goMenu(){
+  document.getElementById("game").style.display="none";
+  document.getElementById("menu").style.display="block";
 }
-</script>
 
+createBoard();
+
+</script>
 </body>
 </html>
