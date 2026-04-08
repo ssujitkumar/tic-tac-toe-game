@@ -32,6 +32,10 @@ button:hover {
   transform: scale(1.1);
 }
 body {
+  function enableSound() {
+  clickSound.play().catch(()=>{});
+  winSound.play().catch(()=>{});
+  }
   margin: 0;
   font-family: Arial;
   background: #111;
@@ -150,13 +154,16 @@ function createBoard() {
 }
 
 function makeMove(i) {
-  clickSound.play();
+  clickSound.currentTime = 0;
+clickSound.play().catch(()=>{});
   if (board[i] !== "" || !gameActive) return;
 
   board[i] = currentPlayer;
   createBoard();
 
-  if (checkWin()) {winSound.play();
+  if (checkWin()) {
+  winSound.currentTime = 0;
+  winSound.play().catch(()=>{});
     document.getElementById("status").innerText = currentPlayer + " Wins 🎉";
     updateScore();
     gameActive = false;
