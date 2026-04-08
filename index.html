@@ -6,6 +6,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+  .cell {
+  transition: 0.3s;
+}
+
+.cell:active {
+  transform: scale(0.9);
+}
+
+.win {
+  background: lime !important;
+  animation: glow 0.5s infinite alternate;
+}
+
+@keyframes glow {
+  from { box-shadow: 0 0 10px lime; }
+  to { box-shadow: 0 0 25px lime; }
+}
+
+button {
+  transition: 0.3s;
+}
+
+button:hover {
+  transform: scale(1.1);
+}
 body {
   margin: 0;
   font-family: Arial;
@@ -87,6 +112,9 @@ button {
 </div>
 
 <script>
+  // SOUND
+const clickSound = new Audio("https://www.soundjay.com/button/sounds/button-16.mp3");
+const winSound = new Audio("https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3");
 let board = ["","","","","","","","",""];
 let currentPlayer = "X";
 let gameActive = true;
@@ -122,12 +150,13 @@ function createBoard() {
 }
 
 function makeMove(i) {
+  clickSound.play();
   if (board[i] !== "" || !gameActive) return;
 
   board[i] = currentPlayer;
   createBoard();
 
-  if (checkWin()) {
+  if (checkWin()) {winSound.play();
     document.getElementById("status").innerText = currentPlayer + " Wins 🎉";
     updateScore();
     gameActive = false;
