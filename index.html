@@ -1,158 +1,191 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Tic Tac Toe Pro</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      text-align: center;
-      font-family: Arial;
-      background: #111;
-      color: white;
-    }
+<title>Tic Tac Toe Pro</title>
 
-    h1 {
-      margin-top: 20px;
-    }
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    .board {
-      display: grid;
-      grid-template-columns: repeat(3, 100px);
-      gap: 10px;
-      justify-content: center;
-      margin-top: 30px;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #111;
+  color: white;
+  text-align: center;
+}
 
-    .cell {
-      width: 100px;
-      height: 100px;
-      background: #222;
-      font-size: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
+/* MENU */
+#menu {
+  margin-top: 100px;
+}
 
-    .cell:hover {
-      background: #333;
-    }
+button {
+  padding: 12px 25px;
+  margin: 10px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  background: #00ffcc;
+  color: black;
+}
 
-    button {
-      margin: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
+/* GAME AREA */
+#game {
+  display: none;
+}
 
-    #menu {
-      margin-top: 20px;
-    }
-  </style>
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  gap: 10px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.cell {
+  width: 100px;
+  height: 100px;
+  background: #222;
+  font-size: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.win {
+  background: green !important;
+}
+
+#status {
+  margin-top: 15px;
+  font-size: 20px;
+}
+
+#score {
+  margin-top: 10px;
+}
+</style>
 </head>
 
 <body>
 
-<h1>Tic Tac Toe Pro 🔥</h1>
-
+<!-- MENU -->
 <div id="menu">
-  <h2>Select Mode</h2>
-  <button onclick="chooseMode('friend')">👥 Friend</button>
-  <button onclick="chooseMode('bot')">🤖 Computer</button>
+  <h1>Tic Tac Toe Pro 🔥</h1>
+  <button onclick="startGame('friend')">👥 Play with Friend</button>
+  <button onclick="startGame('bot')">🤖 Play with Computer</button>
 </div>
 
-<h2 id="status">Select Mode First</h2>
-
-<div class="board" id="board"></div>
-
-<button onclick="resetGame()">Reset</button>
+<!-- GAME -->
+<div id="game">
+  <h2 id="status"></h2>
+  <div class="board" id="board"></div>
+  <h3 id="score">X: 0 | O: 0</h3>
+  <button onclick="resetGame()">🔄 Reset</button>
+  <button onclick="goMenu()">⬅ Back</button>
+</div>
 
 <script>
-let board = ["", "", "", "", "", "", "", "", ""];
+let board = ["","","","","","","","",""];
 let currentPlayer = "X";
-let gameActive = false;
+let gameActive = true;
 let vsComputer = false;
+let scoreX = 0;
+let scoreO = 0;
 
 const winPatterns = [
-  [0,1,2], [3,4,5], [6,7,8],
-  [0,3,6], [1,4,7], [2,5,8],
-  [0,4,8], [2,4,6]
+ [0,1,2],[3,4,5],[6,7,8],
+ [0,3,6],[1,4,7],[2,5,8],
+ [0,4,8],[2,4,6]
 ];
 
-const boardDiv = document.getElementById("board");
-const statusText = document.getElementById("status");
-
-// Create cells
-board.forEach((_, index) => {
-  const cell = document.createElement("div");
-  cell.classList.add("cell");
-  cell.addEventListener("click", () => handleClick(index));
-  boardDiv.appendChild(cell);
-});
-
-// Mode selection
-function chooseMode(mode) {
-  vsComputer = (mode === "bot");
-  gameActive = true;
+function startGame(mode) {
   document.getElementById("menu").style.display = "none";
-  statusText.innerText = "Player X Turn";
+  document.getElementById("game").style.display = "block";
+
+  vsComputer = (mode === "bot");
+  resetGame();
 }
 
-function handleClick(index) {
-  if (board[index] !== "" || !gameActive) return;
+function createBoard() {
+  const boardDiv = document.getElementById("board");
+  boardDiv.innerHTML = "";
 
-  board[index] = currentPlayer;
-  updateBoard();
+  board.forEach((cell, i) => {
+    let div = document.createElement("div");
+    div.classList.add("cell");
+    div.innerText = cell;
+    div.onclick = () => makeMove(i);
+    boardDiv.appendChild(div);
+  });
+}
+
+function makeMove(i) {
+  if (board[i] !== "" || !gameActive) return;
+
+  board[i] = currentPlayer;
+  createBoard();
 
   if (checkWin()) {
-    statusText.innerText = `Player ${currentPlayer} Wins! 🎉`;
+    document.getElementById("status").innerText = currentPlayer + " Wins 🎉";
+    updateScore();
     gameActive = false;
     return;
   }
 
   if (!board.includes("")) {
-    statusText.innerText = "Draw!";
+    document.getElementById("status").innerText = "Draw 😐";
     gameActive = false;
     return;
   }
 
   currentPlayer = currentPlayer === "X" ? "O" : "X";
-  statusText.innerText = `Player ${currentPlayer} Turn`;
+  document.getElementById("status").innerText = "Turn: " + currentPlayer;
 
   if (vsComputer && currentPlayer === "O") {
-    setTimeout(computerMove, 500);
+    setTimeout(botMove, 500);
   }
 }
 
-function computerMove() {
-  let emptyCells = board
-    .map((val, i) => val === "" ? i : null)
-    .filter(v => v !== null);
-
-  let randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-  handleClick(randomIndex);
-}
-
-function updateBoard() {
-  const cells = document.querySelectorAll(".cell");
-  cells.forEach((cell, i) => {
-    cell.innerText = board[i];
-  });
+function botMove() {
+  let empty = board.map((v,i) => v === "" ? i : null).filter(v => v !== null);
+  let move = empty[Math.floor(Math.random() * empty.length)];
+  makeMove(move);
 }
 
 function checkWin() {
   return winPatterns.some(pattern => {
-    const [a,b,c] = pattern;
-    return board[a] && board[a] === board[b] && board[a] === board[c];
+    let [a,b,c] = pattern;
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+      highlightWin(pattern);
+      return true;
+    }
   });
 }
 
+function highlightWin(pattern) {
+  const cells = document.querySelectorAll(".cell");
+  pattern.forEach(i => cells[i].classList.add("win"));
+}
+
+function updateScore() {
+  if (currentPlayer === "X") scoreX++;
+  else scoreO++;
+  document.getElementById("score").innerText = `X: ${scoreX} | O: ${scoreO}`;
+}
+
 function resetGame() {
-  board = ["", "", "", "", "", "", "", "", ""];
-  currentPlayer = "X";
+  board = ["","","","","","","","",""];
   gameActive = true;
-  statusText.innerText = "Player X Turn";
-  updateBoard();
+  currentPlayer = "X";
+  document.getElementById("status").innerText = "Turn: X";
+  createBoard();
+}
+
+function goMenu() {
+  document.getElementById("game").style.display = "none";
+  document.getElementById("menu").style.display = "block";
 }
 </script>
 
